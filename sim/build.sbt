@@ -25,28 +25,45 @@ def isolateAllTests(tests: Seq[TestDefinition]) = tests map { test =>
 
 testGrouping in Test := isolateAllTests( (definedTests in Test).value )
 
+val rocketChipDir = new File("target-rtl/firechip/rocket-chip")
+val fireChipDir  = new File("target-rtl/firechip")
+
 // NB: FIRRTL dependency is unmanaged (and dropped in sim/lib)
-lazy val chisel     = RootProject(file("target-rtl/firechip/rocket-chip/chisel3"))
+lazy val chisel     = RootProject(new File(rocketChipDir, "chisel3"))
 
 // Rocket-chip dependencies (subsumes making RC a RootProject)
-lazy val hardfloat  = (project in file("target-rtl/firechip/rocket-chip/hardfloat"))
-  .settings(commonSettings).dependsOn(chisel)
-  .settings(crossScalaVersions := Seq("2.11.12", "2.12.4"))
-lazy val macros     = (project in file("target-rtl/firechip/rocket-chip/macros")).settings(commonSettings)
-lazy val rocketchip = (project in file("target-rtl/firechip/rocket-chip"))
+lazy val hardfloat  = (project in new File(rocketChipDir, "hardfloat"))
+  .settings(commonSettings).settings(crossScalaVersions := Seq("2.11.12", "2.12.4"))
+  .dependsOn(chisel)
+lazy val macros     = (project in new File(rocketChipDir, "macros"))
+  .settings(commonSettings)
+lazy val rocketchip = (project in rocketChipDir)
   .settings(commonSettings)
   .dependsOn(chisel, hardfloat, macros)
-  .aggregate(chisel, hardfloat, macros) // <-- means the running task on rocketchip is also run by aggregate tasks
 
 // Target-specific dependencies
-lazy val boom       = project in file("target-rtl/firechip/boom") settings commonSettings dependsOn rocketchip
-lazy val sifiveip   = project in file("target-rtl/firechip/sifive-blocks") settings commonSettings dependsOn rocketchip
-lazy val testchipip = project in file("target-rtl/firechip/testchipip") settings commonSettings dependsOn rocketchip
-lazy val icenet     = project in file("target-rtl/firechip/icenet") settings commonSettings dependsOn (rocketchip, testchipip)
+lazy val boom       = (project in new File(fireChipDir, "boom"))
+  .settings(commonSettings)
+  .dependsOn(rocketchip)
+lazy val sifiveip   = (project in new File(fireChipDir, "sifive-blocks"))
+  .settings(commonSettings)
+  .dependsOn(rocketchip)
+lazy val testchipip = (project in new File(fireChipDir, "testchipip"))
+  .settings(commonSettings)
+  .dependsOn(rocketchip)
+lazy val icenet     = (project in new File(fireChipDir, "icenet"))
+  .settings(commonSettings)
+  .dependsOn(rocketchip, testchipip)
 
 // MIDAS-specific dependencies
 lazy val mdf        = RootProject(file("barstools/mdf/scalalib"))
-lazy val barstools  = project in file("barstools/macros") settings commonSettings dependsOn (mdf, rocketchip)
-lazy val midas      = project in file("midas") settings commonSettings dependsOn barstools
+lazy val barstools  = (project in file("barstools/macros"))
+  .settings(commonSettings)
+  .dependsOn(mdf, rocketchip)
+lazy val midas      = (project in file("midas"))
+  .settings(commonSettings)
+  .dependsOn(barstools)
 
-lazy val firesim    = project in file(".") settings commonSettings dependsOn (midas, boom, icenet, sifiveip)
+lazy val firesim    = (project in file("."))
+  .settings(commonSettings)
+  .dependsOn(midas, boom, icenet, sifiveip)
