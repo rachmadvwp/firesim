@@ -35,6 +35,9 @@ $(FIRRTL_JAR): $(shell find $(FIRRTL_SUBMODULE_DIR)/src/main/scala -iname "*.sca
 	mkdir -p $(@D)
 	cp -p $(FIRRTL_SUBMODULE_DIR)/utils/bin/firrtl.jar $(FIRRTL_JAR)
 
+firrtl: $(FIRRTL_JAR)
+.PHONY: firrtl
+
 PLATFORM := f1
 
 # Include target-specific sources and input generation recipes
