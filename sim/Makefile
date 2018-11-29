@@ -20,11 +20,6 @@ default: compile
 SBT ?= sbt
 SBT_FLAGS ?= -J-Xmx16G -J-Xss8M -J-XX:MaxPermSize=256M -J-XX:MaxMetaspaceSize=512M -J-XX:ReservedCodeCacheSize=1G ++2.12.4
 
-sbt: $(FIRRTL_JAR)
-	$(SBT) $(SBT_FLAGS) shell
-test: $(FIRRTL_JAR)
-	$(SBT) $(SBT_FLAGS) test
-
 firesim_base_dir := $(abspath .)
 
 # Manage the FIRRTL dependency manually
@@ -37,6 +32,12 @@ $(FIRRTL_JAR): $(shell find $(FIRRTL_SUBMODULE_DIR)/src/main/scala -iname "*.sca
 
 firrtl: $(FIRRTL_JAR)
 .PHONY: firrtl
+
+# Phony targets for launching the sbt shell and running scalatests
+sbt: $(FIRRTL_JAR)
+	$(SBT) $(SBT_FLAGS) shell
+test: $(FIRRTL_JAR)
+	$(SBT) $(SBT_FLAGS) test
 
 PLATFORM := f1
 
