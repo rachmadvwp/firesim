@@ -9,9 +9,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test",
   libraryDependencies += "org.json4s" %% "json4s-jackson" % "3.5.3",
   libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-  crossScalaVersions := Seq("2.11.12", "2.12.4"),
-  resolvers ++= Seq(Resolver.mavenLocal)
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 )
 
 // Fork each scala test for now, to work around persistent mutable state
@@ -26,9 +24,9 @@ testGrouping in Test := isolateAllTests( (definedTests in Test).value )
 val rocketChipDir = file("target-rtl/firechip/rocket-chip")
 val fireChipDir  = file("target-rtl/firechip")
 
-// Subproject definitions beging
+// Subproject definitions begin
 // NB: FIRRTL dependency is unmanaged (and dropped in sim/lib)
-lazy val chisel     = RootProject(rocketChipDir / "chisel3")
+lazy val chisel  = (project in rocketChipDir / "chisel3")
 
 // Contains annotations & firrtl passes you may wish to use in rocket-chip without
 // introducing a circular dependency between RC and MIDAS
@@ -38,7 +36,9 @@ lazy val midasTargetUtils = (project in file("midas/targetutils"))
 
 // Rocket-chip dependencies (subsumes making RC a RootProject)
 lazy val hardfloat  = (project in rocketChipDir / "hardfloat")
-  .settings(commonSettings)
+  .settings(
+    commonSettings,
+    crossScalaVersions := Seq("2.11.12", "2.12.4"))
   .dependsOn(chisel, midasTargetUtils)
 lazy val macros     = (project in rocketChipDir / "macros")
   .settings(commonSettings)
